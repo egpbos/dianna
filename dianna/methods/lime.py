@@ -1,3 +1,4 @@
+import kwandl
 import numpy as np
 from lime.lime_image import LimeImageExplainer
 from lime.lime_text import LimeTextExplainer
@@ -64,6 +65,7 @@ class LIME:
         self.preprocess_function = preprocess_function
         self.axis_labels = axis_labels if axis_labels is not None else []
 
+    @kwandl.forward
     def explain_text(self,
                      model_or_function,
                      input_data,
@@ -89,14 +91,13 @@ class LIME:
             list of (word, index of word in raw text, importance for target class) tuples
         """
         runner = utils.get_function(model_or_function, preprocess_function=self.preprocess_function)
-        explain_instance_kwargs = utils.get_kwargs_applicable_to_function(self.text_explainer.explain_instance, kwargs)
         explanation = self.text_explainer.explain_instance(input_data,
                                                            runner,
                                                            labels=labels,
                                                            top_labels=top_labels,
                                                            num_features=num_features,
                                                            num_samples=num_samples,
-                                                           **explain_instance_kwargs
+                                                           **kwargs
                                                            )
 
         local_explanations = explanation.local_exp
@@ -108,6 +109,7 @@ class LIME:
         return [(string_map.word(index), int(string_map.string_position(index)), importance)
                 for index, importance in local_explanation]
 
+    @kwandl.forward
     def explain_image(self,
                       model_or_function,
                       input_data,
@@ -141,19 +143,17 @@ class LIME:
         runner = utils.get_function(model_or_function, preprocess_function=full_preprocess_function)
 
         # run the explanation.
-        explain_instance_kwargs = utils.get_kwargs_applicable_to_function(self.image_explainer.explain_instance, kwargs)
         explanation = self.image_explainer.explain_instance(input_data,
                                                             runner,
                                                             labels=labels,
                                                             top_labels=top_labels,
                                                             num_features=num_features,
                                                             num_samples=num_samples,
-                                                            **explain_instance_kwargs,
+                                                            **kwargs,
                                                             )
 
-        get_image_and_mask_kwargs = utils.get_kwargs_applicable_to_function(explanation.get_image_and_mask, kwargs)
         masks = [explanation.get_image_and_mask(label, positive_only=positive_only, hide_rest=hide_rest,
-                                                num_features=num_features, **get_image_and_mask_kwargs)[1]
+                                                num_features=num_features, **kwargs)[1]
                  for label in labels]
         return masks
 

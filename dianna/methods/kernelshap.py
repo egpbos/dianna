@@ -1,4 +1,5 @@
 import warnings
+import kwandl
 import numpy as np
 import shap
 import skimage.segmentation
@@ -26,6 +27,7 @@ class KernelSHAP:
         self.onnx_to_tf = prepare
 
     @staticmethod
+    @kwandl.forward
     def _segment_image(
         image,
         n_segments,
@@ -115,17 +117,13 @@ class KernelSHAP:
         self.input_data = self._prepare_image_data(input_data)
         self.background = background
 
-        # other keyword arguments for the method segment_image
-        slic_kwargs = utils.get_kwargs_applicable_to_function(
-            skimage.segmentation.slic, kwargs)
-
         # call the segment method to create segmentation of input image
         self.image_segments = self._segment_image(
             self.input_data,
             n_segments,
             compactness,
             sigma,
-            **slic_kwargs
+            **kwargs
         )
 
         # call the Kernel SHAP explainer

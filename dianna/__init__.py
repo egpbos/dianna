@@ -22,6 +22,7 @@ become a source of (scientific) insights.
 See https://github.com/dianna-ai/dianna
 """
 import importlib
+import kwandl
 import logging
 from . import utils
 
@@ -33,6 +34,7 @@ __email__ = "dianna-ai@esciencecenter.nl"
 __version__ = "0.4.1"
 
 
+@kwandl.forward
 def explain_image(model_or_function, input_data, method, labels=(1,), **kwargs):
     """
     Explain an image (input_data) given a model and a chosen method.
@@ -52,10 +54,10 @@ def explain_image(model_or_function, input_data, method, labels=(1,), **kwargs):
         # To avoid Access Violation on Windows with SHAP:
         from onnx_tf.backend import prepare  # pylint: disable=import-outside-toplevel,unused-import
     explainer = _get_explainer(method, kwargs)
-    explain_image_kwargs = utils.get_kwargs_applicable_to_function(explainer.explain_image, kwargs)
-    return explainer.explain_image(model_or_function, input_data, labels, **explain_image_kwargs)
+    return explainer.explain_image(model_or_function, input_data, labels, **kwargs)
 
 
+@kwandl.forward
 def explain_text(model_or_function, input_data, method, labels=(1,), **kwargs):
     """
     Explain text (input_data) given a model and a chosen method.
@@ -72,12 +74,11 @@ def explain_text(model_or_function, input_data, method, labels=(1,), **kwargs):
 
     """
     explainer = _get_explainer(method, kwargs)
-    explain_text_kwargs = utils.get_kwargs_applicable_to_function(explainer.explain_text, kwargs)
-    return explainer.explain_text(model_or_function, input_data, labels, **explain_text_kwargs)
+    return explainer.explain_text(model_or_function, input_data, labels, **kwargs)
 
 
+@kwandl.forward
 def _get_explainer(method, kwargs):
     method_submodule = importlib.import_module(f'dianna.methods.{method.lower()}')
     method_class = getattr(method_submodule, method)
-    method_kwargs = utils.get_kwargs_applicable_to_function(method_class.__init__, kwargs)
-    return method_class(**method_kwargs)
+    return method_class(**kwargs)
