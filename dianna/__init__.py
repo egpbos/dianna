@@ -77,7 +77,6 @@ def explain_text(model_or_function, input_data, method, labels=(1,), **kwargs):
     return explainer.explain_text(model_or_function, input_data, labels, **kwargs)
 
 
-@kwandl.forward
 def _get_explainer(method, kwargs):
     method_submodule = importlib.import_module(f'dianna.methods.{method.lower()}')
     method_class = getattr(method_submodule, method)
